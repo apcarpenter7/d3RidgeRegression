@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+
+<svg width="700" height="500">
+</svg>
+
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+<script src=//cdnjs.cloudflare.com/ajax/libs/seedrandom/2.3.10/seedrandom.min.js></script>
+<script src="math.js" type="text/javascript"></script>
+
+<script>
+
+// const m = math.matrix([[0, 1], [2, 3], [4, 5]])
+// console.log(m._size)
+
+function makeArr(startValue, stopValue, cardinality) {
+  var arr = [];
+  var step = (stopValue - startValue) / (cardinality - 1);
+  for (var i = 0; i < cardinality; i++) {
+    arr.push(startValue + (step * i));
+  }
+  return arr;
+}
+
+function makeDataset(x_arr, y_arr) {
+  var dataArr = []
+  for (var i = 0; i < x_arr.length; i++) {
+    dataArr.push([x_arr[i], y_arr[i]])
+
+  }
+  return dataArr
+}
+
+Math.seedrandom('Ridge Regression')
+
+function boxMullerTransform() {
+    const u1 = Math.random();
+    const u2 = Math.random();
+    
+    const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+    const z1 = Math.sqrt(-2.0 * Math.log(u1)) * Math.sin(2.0 * Math.PI * u2);
+    
+    return { z0, z1 };
+}
+
+function getNormallyDistributedRandomNumber(mean, stddev) {
+    const { z0, _ } = boxMullerTransform();
+    
+    return z0 * stddev + mean;
+}
+
+function linearRegression(x_mat, y_mat) {
+
+  // beta = math.evaluate(`x_mat \ y_mat`, {x_mat, y_mat})
+  beta = math.multiply(math.multiply(math.inv(math.multiply(math.transpose(x_mat), x_mat)), math.transpose(x_mat)), y_mat)
+  y_hat = math.multiply(x_mat, beta)
+  return y_hat
+
+}
+
+const X = makeArr(0.1, 10, 100)
+const Y = X.map(function(x) {return x * 2 + getNormallyDistributedRandomNumber(1, 4)})
+const Y_true = X.map(function(x) { return x * 2})
+const dataset = makeDataset(X, Y)
+const Yhat = linearRegression(math.matrix(X), math.matrix(Y))
+const regLine = makeDataset(X, Yhat._data)
+
+// console.log(linearRegression(math.matrix(X), math.matrix(Y)))
+
+
+
+var svg = d3.select("svg"),
+            margin = 200,
+            width = svg.attr("width") - margin,
+            height = svg.attr("height") - margin
+
+var xScale = d3.scaleLinear().domain([d3.min(X), d3.max(X)]).range([0, width]),
+             yScale = d3.scaleLinear().domain([d3.min(Y), d3.max(Y)]).range([height, 0]);
+
+var g = svg.append("g").attr("transform", "translate(" + 100 + "," + 100 + ")");
+
+svg.append('text')
+.attr('x', width/2 + 100)
+.attr('y', 50)
+.attr('text-anchor', 'middle')
+.style('font-family', 'Helvetica')
+.style('font-size', 20)
+.text('Scatter Plot');
+
+// X label
+svg.append('text')
+.attr('x', width/2 + 100)
+.attr('y', height - 15 + 150)
+.attr('text-anchor', 'middle')
+.style('font-family', 'Helvetica')
+.style('font-size', 12)
+.text('X');
+
+// Y label
+svg.append('text')
+.attr('text-anchor', 'middle')
+.attr('transform', 'translate(60,' + height + ')rotate(-90)')
+.style('font-family', 'Helvetica')
+.style('font-size', 12)
+.text('Y');
+
+g.append("g")
+         .attr("transform", "translate(0," + height + ")")
+         .call(d3.axisBottom(xScale));
+        
+g.append("g")
+  .call(d3.axisLeft(yScale));
+
+svg.append('g')
+      .selectAll("dot")
+      .data(dataset)
+      .enter()
+      .append("circle")
+      .attr("cx", function (d) { return xScale(d[0]); } )
+      .attr("cy", function (d) { return yScale(d[1]); } )
+      .attr("r", 2)
+      .attr("transform", "translate(" + 100 + "," + 100 + ")")
+      .style("fill", "#CC0000");
+
+svg.append('path')
+      .datum(regLine)
+      .attr("fill", "none")
+      .attr("stroke", "#69b3a2")
+      .attr("stroke-width", 0.5)
+      .attr("d", d3.line()
+        .x(function(d) { return xScale(d[0])})
+        .y(function(d) { return yScale(d[1])}))
+      .attr("transform", "translate(" + 100 + "," + 100 + ")")
+
+
+</script>
+
+
+
+
+
+ 
