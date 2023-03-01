@@ -2,18 +2,18 @@
 <meta charset="utf-8">
 
 
-<svg width="700" height="500">
+<svg width="800" height="500">
 </svg>
 
 <!-- Load d3.js -->
 <script src="https://d3js.org/d3.v4.js"></script>
 <script src=//cdnjs.cloudflare.com/ajax/libs/seedrandom/2.3.10/seedrandom.min.js></script>
 <script src="math.js" type="text/javascript"></script>
+<input id="slider" type="range" value="0" min="0" max="100" oninput="updateData();">
 
 <script>
 
-// const m = math.matrix([[0, 1], [2, 3], [4, 5]])
-// console.log(m._size)
+
 
 function makeArr(startValue, stopValue, cardinality) {
   var arr = [];
@@ -51,24 +51,58 @@ function getNormallyDistributedRandomNumber(mean, stddev) {
     return z0 * stddev + mean;
 }
 
-function linearRegression(x_mat, y_mat) {
+function createXmat(x) {
+  mat = []
+  for ( var i = 0; i < x.length; i ++) {
+    xi = x[i]
+    mat.push([xi ** 5, xi ** 4, xi ** 3, xi ** 2, xi, 1])
 
-  // beta = math.evaluate(`x_mat \ y_mat`, {x_mat, y_mat})
-  beta = math.multiply(math.multiply(math.inv(math.multiply(math.transpose(x_mat), x_mat)), math.transpose(x_mat)), y_mat)
+  }
+  return math.matrix(mat)
+}
+
+function linearRegression(x_mat, y_mat, lambda) {
+
+  // add intercept
+  // x_mat = math.matrix(makeDataset(x_mat._data, math.ones(500)._data))
+  lambda = math.multiply(math.identity(6), lambda)
+
+  // OLS
+  beta = math.multiply(math.multiply(math.inv(math.add(math.multiply(math.transpose(x_mat), x_mat), lambda)), math.transpose(x_mat)), y_mat)
   y_hat = math.multiply(x_mat, beta)
   return y_hat
 
 }
 
-const X = makeArr(0.1, 10, 100)
-const Y = X.map(function(x) {return x * 2 + getNormallyDistributedRandomNumber(1, 4)})
-const Y_true = X.map(function(x) { return x * 2})
+const X = makeArr(1, 5, 500)
+const Y = X.map(function(x) {return (-0.5335 * x ** 5) +
+  (9.0255 * x ** 4 )- 
+  (57.136 * x ** 3) +
+  (166.15 * x ** 2) -
+  (215.18 * x) + 97.6 + getNormallyDistributedRandomNumber(0, 1)})
+// const Y_true = X.map(function(x) {return (0.1932 * x ** 6) -
+//   (4.187 * x ** 5) +
+//   (36.473 * x ** 4 )- 
+//   (161.6 * x ** 3) +
+//   (377.52 * x ** 2) -
+//   (429.7 * x) + 181.29})
 const dataset = makeDataset(X, Y)
-const Yhat = linearRegression(math.matrix(X), math.matrix(Y))
-const regLine = makeDataset(X, Yhat._data)
+//const Yhat = linearRegression(math.matrix(X), math.matrix(Y), 0)
+const Yhat = linearRegression(createXmat(X), math.matrix(Y), 0)
+console.log(Yhat)
+//const regLine = makeDataset(X, Yhat._data)
 
-// console.log(linearRegression(math.matrix(X), math.matrix(Y)))
 
+lambdas = makeArr(1, 100, 100)
+console.log(lambdas)
+allData = []
+for (var i = 0; i < lambdas.length; i++) {
+  console.log(lambdas[i])
+  yhat = linearRegression(createXmat(X), math.matrix(Y), lambdas[i])
+  console.log(yhat)
+  fitLine = makeDataset(X, yhat._data)
+  allData.push(fitLine)
+}
 
 
 var svg = d3.select("svg"),
@@ -86,8 +120,8 @@ svg.append('text')
 .attr('y', 50)
 .attr('text-anchor', 'middle')
 .style('font-family', 'Helvetica')
-.style('font-size', 20)
-.text('Scatter Plot');
+.style('font-size', 24)
+.text('Ridge Regression');
 
 // X label
 svg.append('text')
@@ -106,6 +140,7 @@ svg.append('text')
 .style('font-size', 12)
 .text('Y');
 
+
 g.append("g")
          .attr("transform", "translate(0," + height + ")")
          .call(d3.axisBottom(xScale));
@@ -120,24 +155,42 @@ svg.append('g')
       .append("circle")
       .attr("cx", function (d) { return xScale(d[0]); } )
       .attr("cy", function (d) { return yScale(d[1]); } )
-      .attr("r", 2)
+      .attr("r", 2.5)
       .attr("transform", "translate(" + 100 + "," + 100 + ")")
-      .style("fill", "#CC0000");
-
+      .style("fill", "#FF2D00");
+//console.log(regLine)
 svg.append('path')
-      .datum(regLine)
+      .datum(allData[0])
       .attr("fill", "none")
-      .attr("stroke", "#69b3a2")
-      .attr("stroke-width", 0.5)
+      .attr("stroke", "#B02203")
+      .attr("stroke-width", 2)
       .attr("d", d3.line()
         .x(function(d) { return xScale(d[0])})
         .y(function(d) { return yScale(d[1])}))
       .attr("transform", "translate(" + 100 + "," + 100 + ")")
+      .attr("class", "RegressionLine")
 
+
+function updateData() {
+//get the slider value
+let i = document.getElementById('slider').value;
+d3.select('.RegressionLine')
+      .datum(allData[i])
+      .attr("fill", "none")
+      .attr("stroke", "#B02203")
+      .attr("stroke-width", 2)
+      .attr("d", d3.line()
+        .x(function(d) { return xScale(d[0])})
+        .y(function(d) { return yScale(d[1])}))
+      .attr("transform", "translate(" + 100 + "," + 100 + ")")
+}
 
 </script>
 
-
+<p>this is html in svg 1</p>
+<p>this is html in svg 2</p>
+<p>this is html in svg 3</p>
+<p>this is html in svg 4</p>
 
 
 
