@@ -1,1 +1,5 @@
-This repository shows an example of ridge regression visualized with D3.js
+# Ridge Regression
+
+## This repository shows an example of ridge regression visualized with D3.js
+
+
