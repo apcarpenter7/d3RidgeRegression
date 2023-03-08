@@ -28,7 +28,7 @@ $$ \beta = (X^TX + \lambda I)^{-1} X^T y$$
 
 ## Code
 
-The code in index.html generates a 5th degree polynomial and adds random noise to the function. Next, it uses the math.js library to solve the closed form solution to the equation above. The initial best fit line is set as $\lambda$ = 0, or ordinary linear regression. The slider under the graph can be used to change the value of $\lambda$. The corresponding changes to the coefficients and best fit line are then dynamically rendered on the page.
+The code in index.html generates a 5th degree polynomial and adds random noise to the function. Next, it uses the math.js library to solve the closed form solution to the equation above. The initial best fit line is set as $\lambda$ = 0, or ordinary linear regression. The slider under the graph can be used to change the value of $\lambda$. The corresponding changes to the coefficients and best fit line are then dynamically rendered on the page. You can see how ridge regression shrinks higher order coeffieints as $\lambda$ increases. 
 
 Use the following steps to run the code and visualize:
 
